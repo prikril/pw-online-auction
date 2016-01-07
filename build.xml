@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="project" default="build">
+    <target name="build" depends="phpab,unit"/>
+
+    <target name="clean" unless="clean.done" description="Cleanup build artifacts">
+        <delete dir="${basedir}/build"/>
+        <delete file="${basedir}/src/autoload.php"/>
+        <delete file="${basedir}/tests/autoload.php"/>
+        <property name="clean.done" value="true"/>
+    </target>
+
+    <target name="prepare" unless="prepare.done" depends="clean" description="Prepare for build">
+        <mkdir dir="${basedir}/build"/>
+        <property name="prepare.done" value="true"/>
+    </target>
+
+    <target name="phpab" description="Generate autoloader with PHPAB">
+        <exec executable="${basedir}/phpab.phar">
+            <arg value="--output"/>
+            <arg path="src/autoload.php"/>
+            <arg value="src"/>
+        </exec>
+        <exec executable="${basedir}/phpab.phar">
+            <arg value="-e"/>
+            <arg path="tests/data"/>
+            <arg value="--output"/>
+            <arg path="tests/autoload.php"/>
+            <arg value="tests"/>
+        </exec>
+    </target>
+
+    <target name="cov" depends="phpab" description="Create code coverage report">
+        <exec executable="phpdbg">
+            <arg value="-qrr"/>
+            <arg path="${basedir}/phpunit.phar"/>
+            <arg value="-c"/>
+            <arg path="phpunit.xml"/>
+            <arg path="tests"/>
+        </exec>
+    </target>
+
+    <target name="testdox" depends="phpab" description="Create testdox">
+        <exec executable="${basedir}/phpunit.phar">
+            <arg value="-c"/>
+            <arg path="phpunit.xml"/>
+            <arg path="tests"/>
+            <arg value="--testdox"/>
+        </exec>
+    </target>
+
+    <target name="unit" depends="phpab" description="Run unit tests with PHPUnit">
+        <exec executable="${basedir}/phpunit.phar">
+            <arg value="-c"/>
+            <arg path="phpunit.xml"/>
+            <arg path="tests"/>
+        </exec>
+    </target>
+</project>
+
